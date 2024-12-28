@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { fetchMutation } from "convex/nextjs";
 // import { fetchMutation } from "convex/nextjs";
 
 interface ProfileFormData {
@@ -60,6 +61,9 @@ export default function ProfileComponent({
 
     if (!file) return;
 
+    const formData = new FormData();
+    formData.append("file", file);
+
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -67,33 +71,32 @@ export default function ProfileComponent({
       };
       reader.readAsDataURL(file);
 
-      // const postUrl = await fetchMutation(api.chats.generateUploadUrl);
+      const postUrl = await fetchMutation(api.chats.generateUploadUrl);
 
-      // const result = await fetch(postUrl, {
-      //   method: "POST",
-      //   headers: { "Content-Type": file.type },
-      //   body: file,
-      // });
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
 
-      // if (!result.ok) {
-      //   throw new Error(`Upload failed: ${result.statusText}`);
-      // }
+      if (!result.ok) {
+        throw new Error(`Upload failed: ${result.statusText}`);
+      }
 
-      // const { storageId } = await result.json();
+      const { storageId } = await result.json();
 
-      // const url = await fetchMutation(api.chats.getUploadUrl, {
-      //   storageId,
-      // });
+      const url = await fetchMutation(api.chats.getUploadUrl, {
+        storageId,
+      });
 
-      // if (url && userInfo?.userId) {
-      //   await fetchMutation(api.users.updateProfileImage, {
-      //     userId: userInfo?.userId,
-      //     profileImage: url,
-      //   });
-      // }
+      if (url && userInfo?.userId) {
+        await fetchMutation(api.users.updateProfileImage, {
+          userId: userInfo?.userId,
+          profileImage: url,
+        });
+      }
     } catch (error) {
-      console.log(error);
-      console.error("Upload failed:", error);
+      console.error("Upload failed: ", error);
     }
   };
 

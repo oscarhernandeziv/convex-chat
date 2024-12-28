@@ -93,35 +93,3 @@ export const updateProfileImage = mutation({
     return updateUser;
   },
 });
-
-export const searchUsers = query({
-  args: {
-    searchTerm: v.string(),
-    currentUserId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    if (!args.searchTerm) return [];
-
-    const searchTermLower = args.searchTerm.toLowerCase();
-
-    const users = await ctx.db
-      .query("users")
-      .filter((q) => q.neq(q.field("userId"), args.currentUserId))
-      .collect();
-
-    return (
-      users
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .filter((user: any) => {
-          const nameMatch = user?.name?.toLowerCase().includes(searchTermLower);
-
-          const emailMatch = user?.email
-            ?.toLowerCase()
-            .includes(searchTermLower);
-
-          return nameMatch || emailMatch;
-        })
-        .slice(0, 10)
-    );
-  },
-});
